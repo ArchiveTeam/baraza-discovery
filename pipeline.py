@@ -113,7 +113,7 @@ class CustomProcessArgs(object):
     def realize(self, item):
         item_type, item_value = item['item_name'].split(':', 1)
 
-        if item_type == 'page':
+        if item_type == 'label':
             # Expect something like label:1d38ed447cfccc87
             return ['python', 'discover.py', item_value,
                     "%(item_dir)s/%(warc_file_base)s.txt.gz" % item]
