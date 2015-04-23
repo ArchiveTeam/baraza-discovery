@@ -1,7 +1,7 @@
 baraza-discovery
 =======================
 
-More information about the archiving project can be found on the ArchiveTeam wiki: [Google Baraza](http://archiveteam.org/index.php?title=http://archiveteam.org/index.php?title=Google_Baraza)
+More information about the archiving project can be found on the ArchiveTeam wiki: [Google Baraza](http://archiveteam.org/index.php?title=Google_Baraza)
 
 Setup instructions
 =========================
