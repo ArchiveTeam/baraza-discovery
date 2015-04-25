@@ -31,10 +31,12 @@ def main():
             # Write the valid result one per line to the file
             line = '{0}\n'.format(shortcode)
             gzip_file.write(line.encode('ascii'))
-        htmltext = requests.get('http://www.google.com/baraza/{2}/label?lid={0}&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS).text
-        if not ('No questions related to this label.' in htmltext or 'Aucune question en rapport avec ce libell' in htmltext):
+        htmlreq = requests.get('http://www.google.com/baraza/{2}/label?lid={0}&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS)
+        htmltext = htmlreq.text
+        htmlstat = htmlreq.status_code
+        if not ('No questions related to this label.' in htmltext or 'Aucune question en rapport avec ce libell' in htmltext or htmlstat == 404):
             num = num + 20
-        elif ('No questions related to this label.' in htmltext or 'Aucune question en rapport avec ce libell' in htmltext):
+        else:
             break
 
     gzip_file.close()
