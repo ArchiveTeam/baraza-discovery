@@ -31,7 +31,7 @@ if StrictVersion(seesaw.__version__) < StrictVersion("0.1.5"):
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
 
-VERSION = "20150425.01"
+VERSION = "20150425.02"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'barazadisco'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -116,7 +116,12 @@ class CustomProcessArgs(object):
         if item_type == 'label':
             # Expect something like label:1d38ed447cfccc87
             return ['python', 'discover.py', item_value,
-                    "%(item_dir)s/%(warc_file_base)s.txt.gz" % item]
+                    "%(item_dir)s/%(warc_file_base)s.txt.gz" % item, "en"]
+
+        elif item_type == 'labelfr':
+            # Expect something like label:1d38ed447cfccc87
+            return ['python', 'discover.py', item_value,
+                    "%(item_dir)s/%(warc_file_base)s.txt.gz" % item, "fr"]
         else:
             raise ValueError('unhandled item type: {0}'.format(item_type))
 
