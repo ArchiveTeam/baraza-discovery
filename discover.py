@@ -16,7 +16,7 @@ class FetchError(Exception):
 def main():
     # Take the program arguments given to this script
     # Normal programs use 'argparse' but this keeps things simple
-    item_value = int(sys.argv[1])
+    item_value = sys.argv[1]
     output_filename = sys.argv[2]  # this should be something like myfile.txt.gz
 
     print('Starting', item_value)
@@ -72,6 +72,7 @@ def fetch(url):
 
     Returns True, returns the response text. Otherwise, returns None
     '''
+    time.sleep(random.randint(5, 10))
     print('Fetch', url)
     sys.stdout.flush()
 
@@ -98,13 +99,11 @@ def fetch(url):
 
 def extract_threads(text):
     '''Return a list of tags from the text.'''
-    # Search for "http://onwonder.blogspot.com/"
-    return re.findall(r'"/baraza/en/thread\?tid=([a-z0-9]+)', text)
+    return re.findall(r'"\/baraza\/en\/thread\?tid=([a-z0-9]+)', text)
 
-def extract_threads(text):
+def extract_users(text):
     '''Return a list of tags from the text.'''
-    # Search for "http://onwonder.blogspot.com/"
-    return re.findall(r'"/baraza/en/user\?userid=([0-9]+)', text)
+    return re.findall(r'"\/baraza\/en\/user\?userid=([0-9]+)', text)
 
 if __name__ == '__main__':
     main()
