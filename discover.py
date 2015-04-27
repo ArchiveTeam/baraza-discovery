@@ -20,35 +20,80 @@ def main():
     output_filename = sys.argv[2]  # this should be something like myfile.txt.gz
     lang = sys.argv[3]
     langcode = sys.argv[4]
+    item_type = sys.argv[5]
 
     print('Starting', item_value)
 
     gzip_file = gzip.GzipFile(output_filename, 'wb')
     
     num = 0
-    
-    while True:
-        for shortcode in check(item_value, num, lang, langcode):
-            # Write the valid result one per line to the file
+
+    if item_type == "label" or item_type == "labelfr" or item_type == "labelru":
+        while True:
+            for shortcode in check(item_value, num, lang, langcode, item_type):
+                # Write the valid result one per line to the file
+                line = '{0}\n'.format(shortcode)
+                print(line)
+                sys.stdout.flush()
+                gzip_file.write(line.encode('ascii'))
+            htmlreq = requests.get('http://{2}/label?lid={0}&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS)
+            htmltext = htmlreq.text
+            htmlstat = htmlreq.status_code
+            if not ('"itlc mrow"' in htmltext or htmlstat == 404):
+                num = num + 20
+            else:
+                break
+    elif item_type == "useren" or item_type == "userfr" or item_type == "userru":
+        while True:
+            for shortcode in check(item_value, num, lang, langcode, item_type):
+                # Write the valid result one per line to the file
+                line = '{0}\n'.format(shortcode)
+                print(line)
+                sys.stdout.flush()
+                gzip_file.write(line.encode('ascii'))
+            htmlreq = requests.get('http://{2}/user?userid={0}&tab=wtmtoa&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS)
+            htmltext = htmlreq.text
+            htmlstat = htmlreq.status_code
+            if not ('"itlc mrow"' in htmltext or htmlstat == 404):
+                num = num + 20
+            else:
+                break
+        num = 0
+        while True:
+            for shortcode in check(item_value, num, lang, langcode, "{0}2".format(item_type)):
+                # Write the valid result one per line to the file
+                line = '{0}\n'.format(shortcode)
+                print(line)
+                sys.stdout.flush()
+                gzip_file.write(line.encode('ascii'))
+            htmlreq = requests.get('http://{2}/user?userid={0}&tab=wtmtor&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS)
+            htmltext = htmlreq.text
+            htmlstat = htmlreq.status_code
+            if not ('"itlc mrow"' in htmltext or htmlstat == 404):
+                num = num + 20
+            else:
+                break
+    else:
+        for shortcode in check(item_value, num, lang, langcode, item_type):
             line = '{0}\n'.format(shortcode)
             print(line)
             sys.stdout.flush()
             gzip_file.write(line.encode('ascii'))
-        htmlreq = requests.get('http://{2}/label?lid={0}&start={1}'.format(item_value, str(int(num)+20), lang), headers=DEFAULT_HEADERS)
-        htmltext = htmlreq.text
-        htmlstat = htmlreq.status_code
-        if not ('"itlc mrow"' in htmltext or htmlstat == 404):
-            num = num + 20
-        else:
-            break
 
     gzip_file.close()
 
     print('Done')
 
 
-def check(item_value, num, lang, langcode):
-    url = 'http://{2}/label?lid={0}&start={1}'.format(item_value, num, lang)
+def check(item_value, num, lang, langcode, item_type):
+    if item_type == "label" or item_type == "labelfr" or item_type == "labelru":
+        url = 'http://{2}/label?lid={0}&start={1}'.format(item_value, num, lang)
+    elif item_type == "threaden" or item_type == "threadfr" or item_type == "threadru":
+        url = 'http://{1}/thread?tid={0}'.format(item_value, lang)
+    elif item_type == "useren" or item_type == "userfr" or item_type == "userru":
+        url = 'http://{2}/user?userid={0}&tab=wtmtoa&start={1}'.format(item_value, num, lang)
+    elif item_type == "useren2" or item_type == "userfr2" or item_type == "userru2":
+        url = 'http://{2}/user?userid={0}&tab=wtmtor&start={1}'.format(item_value, num, lang)
     counter = 0
     while True:
         # Try 4 times before giving up
@@ -64,11 +109,13 @@ def check(item_value, num, lang, langcode):
             time.sleep(10)
         else:
             if text:
-                yield 'id{1}:{0}'.format(item_value, lang)
-                for thread in extract_threads(text, lang):
+                yield 'id{1}:{0}'.format(item_value, langcode)
+                for thread in extract_threads(text, lang, item_type):
                     yield 'thread{1}:{0}'.format(thread, langcode)
-                for user in extract_users(text, lang):
+                for user in extract_users(text, lang, item_type):
                     yield 'user{1}:{0}'.format(user, langcode)
+                for label in extract_labels(text, lang, item_type):
+                    yield 'label{1}:{0}'.format(label, langcode)
             break  # stop the while loop
 
         counter += 1
@@ -103,19 +150,26 @@ def fetch(url):
         # Problem
         raise FetchError()
 
-def extract_threads(text, lang):
+def extract_threads(text, lang, item_type):
     '''Return a list of tags from the text.'''
     if lang == "otvety.google.ru/otvety":
         return re.findall(r'"\/otvety\/thread\?tid=([a-z0-9]+)', text)
     else:
         return re.findall(r'"\/baraza\/[a-z][a-z]\/thread\?tid=([a-z0-9]+)', text)
 
-def extract_users(text, lang):
+def extract_users(text, lang, item_type):
     '''Return a list of tags from the text.'''
     if lang == "otvety.google.ru/otvety":
         return re.findall(r'"\/otvety\/user\?userid=([0-9]+)', text)
     else:
         return re.findall(r'"\/baraza\/[a-z][a-z]\/user\?userid=([0-9]+)', text)
+
+def extract_labels(text, lang, item_type):
+    '''Return a list of tags from the text.'''
+    if lang == "otvety.google.ru/otvety":
+        return re.findall(r'"\/otvety\/label\?lid=([a-z0-9]+)', text)
+    else:
+        return re.findall(r'"\/baraza\/[a-z][a-z]\/label\?lid=([a-z0-9]+)', text)
 
 if __name__ == '__main__':
     main()
