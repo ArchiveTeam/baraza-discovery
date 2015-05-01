@@ -143,7 +143,7 @@ def fetch(url):
             raise FetchError()
 
         return response.text
-    elif response.status_code == 404:
+    elif response.status_code == 404 or response.status_code == 400:
         # Does not exist
         return
     else:
